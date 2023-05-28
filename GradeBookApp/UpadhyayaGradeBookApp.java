@@ -2,6 +2,8 @@
  * Upadhyaya, A. (2023). CIS505-T301 Intermediate Java Programming. Bellevue University, all rights reserved. 
  */
 
+import java.util.ArrayList;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -9,6 +11,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -29,6 +32,9 @@ public class UpadhyayaGradeBookApp extends Application {
     private Button btnClear = new Button("Clear Form");
     private Button btnViewGrades = new Button("View Saved Grades");
     private Button btnSave = new Button("Save");
+
+    private Label lblResults = new Label("Students Grades");
+    private TextArea txtResults = new TextArea();
 
     public void start(Stage primaryStage) throws Exception {
         GridPane container = new GridPane(); // The main container for all the components
@@ -59,10 +65,68 @@ public class UpadhyayaGradeBookApp extends Application {
         actionBtnContainer.getChildren().add(2, btnSave); // Add save butotn
         container.add(actionBtnContainer, 1, 4); // Add action button container to main grid pane
 
+        btnClear.setOnAction(e -> clearForm()); // Set action to clear form
+        btnSave.setOnAction(e -> { // Set action to save student's grade
+            try {
+                saveStudentGrade();
+            } catch (Exception e1) {
+                System.out.println("Unable to save student's grade" + e1.getMessage());
+            }
+        });
+        btnViewGrades.setOnAction(e -> viewGrades());
+
+        container.add(lblResults, 0, 5, 2, 1); // Add results label to main container
+        container.add(txtResults, 0, 6, 2, 1); // Add results text area to main container
+
         primaryStage.setTitle("Upadhyaya Grade Book App"); // Set the title of the application
-        primaryStage.setScene(new Scene(container, 400, 250)); // Create and set scene to stage
+        primaryStage.setScene(new Scene(container, 400, 450)); // Create and set scene to stage
         primaryStage.setResizable(false);
         primaryStage.show(); // Show the application
+    }
+
+    /**
+     * This method is invoked on click of Clear button to reset the form
+     */
+    private final void clearForm() {
+        txtFirstName.clear();
+        txtLastName.clear();
+        txtCourse.clear();
+        cmbGrade.setValue("");
+        txtResults.clear();
+    }
+
+    private final void saveStudentGrade() throws Exception {
+        // Create object of StudentGradeIO
+        StudentGradeIO studentGradeIO = new StudentGradeIO();
+
+        // Create an instance of Student using values entered by the user
+        Student student = new Student(txtFirstName.getText(), txtLastName.getText(), txtCourse.getText(), cmbGrade.getValue());
+
+        studentGradeIO.saveStudentGrades(student);
+
+        // Clear the form after successful entry
+        clearForm();
+    }
+
+    private void viewGrades() {
+        try {
+            // Create object of StudentGradeIO
+            StudentGradeIO studentGradeIO = new StudentGradeIO();
+
+            ArrayList<Student> students = studentGradeIO.getAllStudentGrades();
+
+            // Prepare results
+            StringBuilder results = new StringBuilder();
+            for(Student student: students) {
+                results.append(student.toString() + "\n");
+                results.append("-------------------------------------\n");
+            }
+
+            // Print results in the text area
+            txtResults.setText(results.toString());
+        } catch(Exception ex) {
+            txtResults.setText("No saved grades found!");
+        }
     }
 
     public static void main(String[] args) {
